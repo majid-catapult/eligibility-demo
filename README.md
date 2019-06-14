@@ -3,6 +3,8 @@
 
 2.  node app.js
 
+3.  go to http://localhost:3000/eligibility-demo.html
+
 3.  Paste %WH9101000260BCBSMASS_001^FRANKLIN/BENJAMIN^DB17011212 into the first input box or put cursor in this input and scan a valid barcode
 
 4.  Once the data is parsed and all the text fields below have valid data click on Check Eligibility button
