@@ -1,0 +1,115 @@
+<html>
+<head>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+  </head>
+  <body>
+    <script>
+
+      function clearData(){
+        console.log('clearing...')
+        $('#member-name').val('');
+        $('#member-id').val('');
+        $('#dob').val('');
+        $('#raw-data').val('');
+        $('#thumbs-up').css('display', 'none');
+      }
+
+      function parseData(){
+            //parse raw-data from bar code scan
+            var data = $('#raw-data').val().split('^');
+
+            $('#member-id').val(data[0].split('%WH9101000260')[1]);
+
+            var name = data[1].split('/');
+            $('#member-name').val(name[0] + ' ' + name[1]);
+
+            var date = data[2].split('DB')[1];
+            var year = date.slice(0,4);
+            var month = date.slice(4,6);
+            var day = date.slice(6,8)
+            $('#dob').val(year+'-'+month+'-'+day);
+      }
+
+      /* request looks like this
+      https://gds.eligibleapi.com/v1.5/coverage/all.json?
+      api_key=mUroZnH_1cMiNPyrgzTrJdsw8i2OWgpQCxab
+      &payer_id=TXBLS
+      &provider_last_name=Jefferson
+      &provider_first_name=Thomas
+      &provider_npi=1234567893
+      &member_id=BCBSMASS_001
+      &member_first_name=Benjamin
+      &member_last_name=Franklin
+      &member_dob=1701-12-12&cpt_code=98969
+      */
+
+      function checkEligibility(){
+        $('#btn-check-eligibility').html('Checking Eligibility...');
+
+        $.get( "https://gds.eligibleapi.com/v1.5/coverage/all.json",
+          { api_key: "mUroZnH_1cMiNPyrgzTrJdsw8i2OWgpQCxab",
+            payer_id: "TXBLS",
+            provider_last_name: "Jefferson",
+            provider_first_name: "Thomas",
+            provider_npi: "1234567893",
+            //remove this code to see thumbs-down png
+            cpt_code:"98960",
+            member_id:$('#member-id').val(),
+            member_first_name: $('#member-name').val().split(' ')[1],
+            member_last_name: $('#member-name').val().split(' ')[0],
+            member_dob: $('#dob').val()
+          } )
+          .done(function( data ) {
+            //check to see that we get a service of type 1 back in our response and that coverate-status is 1
+            var serviceFound=false;
+            for (i=0; i< data.services.length; i++){
+              if (data.services[i].type === "1" && data.services[i].coverage_status === "1"){
+                serviceFound=true;
+                break;
+              }
+            }
+            if (serviceFound){
+              //show thumbs up
+              $("#thumbs-up").attr("src","thumbs-up.png");
+              $('#thumbs-up').css('display', 'block');
+
+            }
+            else{
+              //if not found show thumbs down
+              $("#thumbs-up").attr("src","thumbs-down.png");
+              $('#thumbs-up').css('display', 'block');
+            }
+            $('#btn-check-eligibility').html('Check Eligibility');
+  });
+      }
+      </script>
+<h1>Eligibility Scan Demo</h1>
+
+<div style="margin-left:25%;">
+  <img src="bcode.png" />
+</div>
+
+<div style="margin:20px">Put cursor here and scan barcode:
+  <input id="raw-data" oninput="parseData()">
+  <!--%WH9101000260BCBSMASS_001^FRANKLIN/BENJAMIN^DB17011212
+  --></input>
+</div>
+<div style="margin:20px">
+  <span>Member ID</span><div><input id="member-id"/></div>
+</div>
+
+  <div style="margin:20px">
+    <span>Name</span><div><input id='member-name'/></div>
+  </div>
+
+    <div style="margin:20px">
+      <span>DOB</span><div><input id='dob'/></div>
+    </div>
+    <div>
+      <button type="button" id='btn-clear' onclick="clearData()" name="button2">Clear</button>
+      <button type="button" id='btn-check-eligibility' onclick="checkEligibility()" name="button">Check Eligibility</button>
+      <img id='thumbs-up' style="display:none"/>
+
+</body>
+</html>
