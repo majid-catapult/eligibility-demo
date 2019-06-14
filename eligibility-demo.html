@@ -63,12 +63,18 @@
           .done(function( data ) {
             //check to see that we get a service of type 1 back in our response and that coverate-status is 1
             var serviceFound=false;
+            if (data.services){
             for (i=0; i< data.services.length; i++){
               if (data.services[i].type === "1" && data.services[i].coverage_status === "1"){
                 serviceFound=true;
                 break;
               }
             }
+          }
+          else{
+            console.log('invalid request...')
+            console.log(data);
+          }
             if (serviceFound){
               //show thumbs up
               $("#thumbs-up").attr("src","thumbs-up.png");
